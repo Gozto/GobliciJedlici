@@ -139,14 +139,62 @@ public class GameLogic {
         return availableGoblik;
     }
 
-    void placeGoblik(int row, int col, Goblik goblik) {
+    boolean placeGoblik(int row, int col, Goblik goblik) {
+
+        String currentPlayer = getCurrentPlayer();
+        int size = goblik.getSize();
+        if (!isGoblikAvailable(currentPlayer, size)) {
+            System.out.println("Už si minul goblíkov veľkosti " + (size + 1) + "!");
+            return false;
+        }
+
         Stack<Goblik> stack = board.get(new AbstractMap.SimpleEntry<>(row, col));
         if (stack.isEmpty() || stack.peek().getSize() < goblik.getSize()) {
             stack.push(goblik);
             System.out.println("Goblik placed at " + row + ", " + col);
+            return true;
         }
         else {
             System.out.println("Cannot place a larger Goblik on a smaller one!");
+            return false;
         }
+    }
+
+    public int getSize() {
+        return size;
+    }
+
+    public boolean isValidMove(Integer curRow, Integer curCol, int newRow, int newCol) {
+        if (curRow.equals(newRow) && curCol.equals(newCol)) {
+            return false;
+        }
+
+        Stack<Goblik> curGoblikStack = board.get(new AbstractMap.SimpleEntry<>(curRow, curCol));
+        if (!curGoblikStack.isEmpty()) {
+            Goblik curGoblik = curGoblikStack.peek();
+            int curGobliKSize = curGoblik.getSize();
+            Stack<Goblik> newPositionGoblikStack = board.get(new AbstractMap.SimpleEntry<>(newRow, newCol));
+            if (newPositionGoblikStack.isEmpty() || newPositionGoblikStack.peek().getSize() < curGobliKSize) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void moveGoblik(Integer curRow, Integer curCol, int newRow, int newCol) {
+        Goblik curGoblik = board.get(new AbstractMap.SimpleEntry<>(curRow, curCol)).pop();
+        board.get(new AbstractMap.SimpleEntry<>(newRow, newCol)).add(curGoblik);
+    }
+
+    public void restartGame() {
+        availableGoblik.put("Blue", new Integer[] {2, 2, 2});
+        availableGoblik.put("Red", new Integer[] {2, 2, 2});
+        board.clear();
+        for (int row = 0; row < size; row++) {
+            for (int col = 0; col < size; col++) {
+                board.put(new AbstractMap.SimpleEntry<>(row, col), new Stack<>());
+            }
+        }
+        currentPlayer = players[r.nextInt(2)];
     }
 }

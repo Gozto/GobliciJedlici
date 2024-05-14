@@ -13,6 +13,8 @@ import java.util.Objects;
 
 public class Main extends Application {
 
+    public static Scene mainScene;
+
     @Override
     public void start(Stage stage) throws Exception {
         stage.setTitle("Goblíci jedlíci");
@@ -34,8 +36,8 @@ public class Main extends Application {
         singlePlayerButton.setOnAction(e -> startSinglePlayerGame(stage));
         twoPlayerButton.setOnAction(e -> startTwoPlayerGame(stage));
 
-        Scene scene = new Scene(layout, 500, 500);
-        stage.setScene(scene);
+        mainScene = new Scene(layout, 500, 500);
+        stage.setScene(mainScene);
         stage.show();
     }
 

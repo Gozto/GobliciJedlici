@@ -1,18 +1,21 @@
 package com.example.goblicijedlici;
 
 import javafx.geometry.Insets;
-import javafx.scene.control.Button;
+import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import java.util.*;
 import javafx.geometry.Pos;
-import javafx.scene.control.Label;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.application.Platform;
+import javafx.stage.Stage;
+
 
 public class GameBoard extends VBox {
 
     private Label currentPlayerLabel;
+    private Label selectedGoblikInfo;
     private GridPane grid;
     private Map<AbstractMap.SimpleEntry<Integer, Integer>, Stack<Goblik>> board;
     private final int size = 3;
@@ -21,10 +24,17 @@ public class GameBoard extends VBox {
     private VBox rightPanel; // pre cerveneho
     private HBox mainContainer;
 
+    private int selectedGoblikSize = -1;
+    private AbstractMap.SimpleEntry<Integer, Integer> movingGoblikPosition = null; // ked presuvame goblika
+
     public GameBoard(GameLogic gameLogic) {
 
         this.gameLogic = gameLogic;
         board = gameLogic.getBoard();
+
+        currentPlayerLabel = new Label();
+        selectedGoblikInfo = new Label("Žiaden goblík nie je vybraný.");
+        selectedGoblikInfo.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
 
         currentPlayerLabel = new Label();
         this.setAlignment(Pos.CENTER);
@@ -53,7 +63,24 @@ public class GameBoard extends VBox {
         mainContainer.setAlignment(Pos.CENTER);
         mainContainer.getChildren().addAll(leftPanel, grid, rightPanel);
 
-        this.getChildren().addAll(currentPlayerLabel, mainContainer);
+        this.setOnKeyPressed(event -> {
+            String key = event.getText();
+            if (key.matches("[123]")) {
+                selectedGoblikSize = Integer.parseInt(key) - 1;
+                selectedGoblikInfo.setText("Vybraný goblík: Veľkosť " + (selectedGoblikSize + 1));
+                System.out.println("Vybraná veľkosť goblíka: " + (selectedGoblikSize + 1));
+            }
+            else if (key.matches("[r]")) {
+                selectedGoblikSize = -1;
+                selectedGoblikInfo.setText("Žiaden goblík nie je vybraný.");
+                System.out.println("Nie je vybraný žiaden goblík.");
+            }
+        });
+
+        VBox layout = new VBox(5);
+        layout.setAlignment(Pos.CENTER);
+        layout.getChildren().addAll(currentPlayerLabel, mainContainer,  selectedGoblikInfo);
+        this.getChildren().add(layout);
         this.setSpacing(10);
         this.setAlignment(Pos.CENTER);
     }
@@ -77,26 +104,47 @@ public class GameBoard extends VBox {
     }
 
     private void handleButtonAction(int row, int col) {
-        System.out.println("Tlačidlo stlačené na riadku: " + row + ", stĺpci: " + col);
-        gameLogic.changeCurPlayer();
-        updateCurrentPlayerLabel();
-    }
-
-
-    public void showBoard() {
-        for (int row = 0; row < size; row++) {
-            for (int col = 0; col < size; col++) {
-                Stack<Goblik> stack = board.get(new AbstractMap.SimpleEntry<>(row, col));
-                if (stack.isEmpty()) {
-                    System.out.print(". ");
+        if (selectedGoblikSize == -1) {
+            if (movingGoblikPosition == null) {
+                Stack<Goblik> stack = gameLogic.getBoard().get(new AbstractMap.SimpleEntry<>(row, col));
+                if (!stack.isEmpty() && stack.peek().getColor().equals(gameLogic.getCurrentPlayer())) {
+                    movingGoblikPosition = new AbstractMap.SimpleEntry<>(row, col);
+                    selectedGoblikInfo.setText("Vybraný goblík na riadku: " + row + " a stĺpci: " + col);
+                    System.out.println("Goblík vybraný na presun z [" + row + ", " + col + "]");
                 }
-                else {
-                    System.out.print("G ");
+                return;
+            }
+            else {
+                if (gameLogic.isValidMove(movingGoblikPosition.getKey(), movingGoblikPosition.getValue(), row, col)) {
+                    gameLogic.moveGoblik(movingGoblikPosition.getKey(), movingGoblikPosition.getValue(), row, col);
+                    updateBoard();
+                    checkForWinner();
+                    gameLogic.changeCurPlayer();
+                    updateCurrentPlayerLabel();
+                    movingGoblikPosition = null;
+                    System.out.println("Goblík presunutý na [" + row + ", " + col + "]");
+                    return;
+                } else {
+                    System.out.println("Neplatný presun!");
+                    movingGoblikPosition = null;
+                    return;
                 }
             }
-            System.out.println();
+        }
+
+        String currentPlayer = gameLogic.getCurrentPlayer();
+        if (gameLogic.placeGoblik(row, col, new Goblik(selectedGoblikSize, row, col, currentPlayer))) {
+            gameLogic.takeGoblik(currentPlayer, selectedGoblikSize);
+            updateBoard();
+            checkForWinner();
+            updateGoblikDisplay();
+            gameLogic.changeCurPlayer();
+            updateCurrentPlayerLabel();
+            selectedGoblikSize = -1;
+            selectedGoblikInfo.setText("Žiaden goblík nie je vybraný.");
         }
     }
+
 
     private void updateCurrentPlayerLabel() {
         String currentPlayer = gameLogic.getCurrentPlayer();
@@ -107,6 +155,13 @@ public class GameBoard extends VBox {
     }
 
     private void initializeGoblikDisplays() {
+        updateGoblikDisplay();
+    }
+
+    private void updateGoblikDisplay() {
+        leftPanel.getChildren().clear();
+        rightPanel.getChildren().clear();
+
         Map<String, Integer[]> availableGoblik = gameLogic.getAvailableGoblik();
         displayGobliks(availableGoblik.get("Blue"), leftPanel, Color.BLUE);
         displayGobliks(availableGoblik.get("Red"), rightPanel, Color.RED);
@@ -119,6 +174,94 @@ public class GameBoard extends VBox {
                 panel.getChildren().add(circle);
             }
         }
+    }
+
+    private void updateBoard() {
+        grid.getChildren().clear();
+
+        for (int row = 0; row < gameLogic.getSize(); row++) {
+            for (int col = 0; col < gameLogic.getSize(); col++) {
+                StackPane cellPane = new StackPane();
+                cellPane.setMinSize(105, 105);
+
+                Button cell = new Button();
+                cell.setMinSize(105, 105);
+                cell.setMaxSize(105, 105);
+                String top = (row == 0) ? "0" : "1";
+                String right = (col == gameLogic.getSize() - 1) ? "0" : "1";
+                String bottom = (row == gameLogic.getSize() - 1) ? "0" : "1";
+                String left = (col == 0) ? "0" : "1";
+                cell.setStyle(String.format("-fx-background-color: transparent; -fx-border-color: black; " +
+                        "-fx-border-width: %s %s %s %s;", top, right, bottom, left));
+
+                Stack<Goblik> stack = gameLogic.getBoard().get(new AbstractMap.SimpleEntry<>(row, col));
+
+                if (!stack.isEmpty()) {
+                    Goblik topGoblik = stack.peek();
+                    Circle circle = new Circle(getCircleRadius(topGoblik.getSize()));
+                    circle.setFill(topGoblik.getColor().equals("Red") ? Color.RED : Color.BLUE);
+                    cellPane.getChildren().add(circle);
+                }
+
+                cellPane.getChildren().add(cell);
+
+                final int r = row;
+                final int c = col;
+                cell.setOnAction(e -> handleButtonAction(r, c));
+
+                grid.add(cellPane, col, row);
+            }
+        }
+    }
+
+    private double getCircleRadius(int size) {
+        switch (size) {
+            case 0: return 20;
+            case 1: return 30;
+            case 2: return 40;
+            default: return 10;
+        }
+    }
+
+    private void checkForWinner() {
+        String winner = gameLogic.isWinner();
+        if (winner != null) {
+            System.out.println(winner + " wins!");
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Game Over");
+            alert.setHeaderText(null);
+            alert.setContentText(winner + " vyhral!\nVyber si, čo ďalej:");
+
+            ButtonType buttonTypeNewGame = new ButtonType("Nová hra");
+            ButtonType buttonTypeMainMenu = new ButtonType("Vráť sa do menu");
+            ButtonType buttonTypeCancel = new ButtonType("Koniec", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+            alert.getButtonTypes().setAll(buttonTypeNewGame, buttonTypeMainMenu, buttonTypeCancel);
+
+            Optional<ButtonType> result = alert.showAndWait();
+            if (result.isPresent() && result.get() == buttonTypeNewGame) {
+                restartGame();
+            } 
+            else if (result.isPresent() && result.get() == buttonTypeMainMenu) {
+                goToMainMenu();
+            } 
+            else if (result.isPresent() && result.get() == buttonTypeCancel) {
+                Platform.exit();
+            }
+        }
+    }
+
+    private void restartGame() {
+        gameLogic.restartGame();
+        updateBoard();
+        updateGoblikDisplay();
+        updateCurrentPlayerLabel();
+    }
+
+    private void goToMainMenu() {
+        Stage stage = (Stage) this.getScene().getWindow(); 
+        stage.setScene(Main.mainScene);
+        stage.show();
     }
 
 }
