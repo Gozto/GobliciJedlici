@@ -6,8 +6,8 @@ import java.util.*;
 public class GameLogic {
 
     private String currentPlayer;
-    private Map<String, Integer[]> availableGoblik = new HashMap<>();
-    private String[] players = {"Red", "Blue"};
+    private final Map<String, Integer[]> availableGoblik = new HashMap<>();
+    private final String[] players = {"Red", "Blue"};
     Random r = new Random();
     Map<AbstractMap.SimpleEntry<Integer, Integer>, Stack<Goblik>> board;
     private final int size = 3;

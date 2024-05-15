@@ -15,14 +15,11 @@ import javafx.stage.Stage;
 public class GameBoard extends VBox {
 
     private Label currentPlayerLabel;
-    private Label selectedGoblikInfo;
-    private GridPane grid;
-    private Map<AbstractMap.SimpleEntry<Integer, Integer>, Stack<Goblik>> board;
-    private final int size = 3;
-    private GameLogic gameLogic;
-    private VBox leftPanel; // pre modreho
-    private VBox rightPanel; // pre cerveneho
-    private HBox mainContainer;
+    private final Label selectedGoblikInfo;
+    private final GridPane grid;
+    private final GameLogic gameLogic;
+    private final VBox leftPanel; // pre modreho
+    private final VBox rightPanel; // pre cerveneho
 
     private int selectedGoblikSize = -1;
     private AbstractMap.SimpleEntry<Integer, Integer> movingGoblikPosition = null; // ked presuvame goblika
@@ -30,7 +27,7 @@ public class GameBoard extends VBox {
     public GameBoard(GameLogic gameLogic) {
 
         this.gameLogic = gameLogic;
-        board = gameLogic.getBoard();
+        Map<AbstractMap.SimpleEntry<Integer, Integer>, Stack<Goblik>> board = gameLogic.getBoard();
 
         currentPlayerLabel = new Label();
         selectedGoblikInfo = new Label("Žiaden goblík nie je vybraný.");
@@ -59,7 +56,7 @@ public class GameBoard extends VBox {
         initializeBoard();
         initializeGoblikDisplays();
 
-        mainContainer = new HBox(0);
+        HBox mainContainer = new HBox(0);
         mainContainer.setAlignment(Pos.CENTER);
         mainContainer.getChildren().addAll(leftPanel, grid, rightPanel);
 
@@ -86,6 +83,7 @@ public class GameBoard extends VBox {
     }
 
     private void initializeBoard() {
+        int size = 3;
         for (int row = 0; row < size; row++) {
             for (int col = 0; col < size; col++) {
                 Button button = new Button();
@@ -112,6 +110,9 @@ public class GameBoard extends VBox {
                     selectedGoblikInfo.setText("Vybraný goblík na riadku: " + row + " a stĺpci: " + col);
                     System.out.println("Goblík vybraný na presun z [" + row + ", " + col + "]");
                 }
+                else {
+                    selectedGoblikInfo.setText("Neplatný ťah!");
+                }
                 return;
             }
             else {
@@ -122,10 +123,13 @@ public class GameBoard extends VBox {
                     gameLogic.changeCurPlayer();
                     updateCurrentPlayerLabel();
                     movingGoblikPosition = null;
+                    selectedGoblikInfo.setText("Žiaden goblík nie je vybraný.");
                     System.out.println("Goblík presunutý na [" + row + ", " + col + "]");
                     return;
-                } else {
+                }
+                else {
                     System.out.println("Neplatný presun!");
+                    selectedGoblikInfo.setText("Neplatný ťah!");
                     movingGoblikPosition = null;
                     return;
                 }
@@ -142,6 +146,9 @@ public class GameBoard extends VBox {
             updateCurrentPlayerLabel();
             selectedGoblikSize = -1;
             selectedGoblikInfo.setText("Žiaden goblík nie je vybraný.");
+        }
+        else {
+            selectedGoblikInfo.setText("Neplatný ťah!");
         }
     }
 
@@ -253,15 +260,20 @@ public class GameBoard extends VBox {
 
     private void restartGame() {
         gameLogic.restartGame();
+        resetSelectedGoblikInfo();
         updateBoard();
         updateGoblikDisplay();
         updateCurrentPlayerLabel();
     }
 
     private void goToMainMenu() {
-        Stage stage = (Stage) this.getScene().getWindow(); 
-        stage.setScene(Main.mainScene);
+        Stage stage = (Stage) this.getScene().getWindow();
+        stage.setScene(Main.getMainScene());
         stage.show();
+    }
+
+    private void resetSelectedGoblikInfo() {
+        selectedGoblikInfo.setText("Žiaden goblík nie je vybraný.");
     }
 
 }

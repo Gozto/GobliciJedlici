@@ -3,6 +3,7 @@ package com.example.goblicijedlici;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
@@ -19,12 +20,12 @@ public class Main extends Application {
     public void start(Stage stage) throws Exception {
         stage.setTitle("Goblíci jedlíci");
 
-        Button singlePlayerButton = new Button("Hra proti počítaču");
+        Button rulesButton = new Button("Pravidlá");
         Button twoPlayerButton = new Button("Hra pre 2 hráčov");
 
         VBox layout = new VBox(20);
         layout.setAlignment(Pos.CENTER);
-        layout.getChildren().addAll(singlePlayerButton, twoPlayerButton);
+        layout.getChildren().addAll(twoPlayerButton, rulesButton);
         layout.setPadding(new Insets(200, 0, 0, 0));
 
         Image backgroundImage = new Image(Objects.requireNonNull(getClass()
@@ -33,7 +34,7 @@ public class Main extends Application {
                 BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER, BackgroundSize.DEFAULT);
         layout.setBackground(new Background(background));
 
-        singlePlayerButton.setOnAction(e -> startSinglePlayerGame(stage));
+        rulesButton.setOnAction(e -> openRulesButton(stage));
         twoPlayerButton.setOnAction(e -> startTwoPlayerGame(stage));
 
         mainScene = new Scene(layout, 500, 500);
@@ -41,8 +42,8 @@ public class Main extends Application {
         stage.show();
     }
 
-    private void startSinglePlayerGame(Stage primaryStage) {
-        System.out.println("Spúšťa sa hra proti počítaču...");
+    private void openRulesButton(Stage primaryStage) {
+        GameRules.showRules(primaryStage);
     }
 
     private void startTwoPlayerGame(Stage primaryStage) {
@@ -52,6 +53,10 @@ public class Main extends Application {
         Scene scene = new Scene(gameBoard, 500, 500);
         primaryStage.setScene(scene);
         primaryStage.show();
+    }
+
+    public static Scene getMainScene() {
+        return mainScene;
     }
 
 }
