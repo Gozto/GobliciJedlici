@@ -7,8 +7,16 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
+/**
+ * The type Game rules.
+ */
 public class GameRules {
 
+    /**
+     * Show rules.
+     *
+     * @param ownerStage the owner stage
+     */
     public static void showRules(Stage ownerStage) {
         Stage rulesStage = new Stage();
         rulesStage.setTitle("Pravidlá hry");
@@ -34,7 +42,7 @@ public class GameRules {
                 "hráč položiť buď na voľné miesto, alebo na iného goblíka, ktorý je ale menší (na farbe goblíka " +
                 "nezáleží). Cieľom hry je uložiť vedľa seba troch goblíkov rovnakej farby, buď vertikálne, horizontálne, " +
                 "alebo na diagonále.");
-        rulesLabel.setStyle("-fx-font-size: 16px;");
+        rulesLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold");
 
         rulesLabel.setWrapText(true);
         rulesLabel.setMaxWidth(400);

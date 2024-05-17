@@ -12,8 +12,14 @@ import javafx.scene.control.Button;
 
 import java.util.Objects;
 
+/**
+ * The type Main.
+ */
 public class Main extends Application {
 
+    /**
+     * The constant mainScene.
+     */
     public static Scene mainScene;
 
     @Override
@@ -55,6 +61,11 @@ public class Main extends Application {
         primaryStage.show();
     }
 
+    /**
+     * Gets main scene.
+     *
+     * @return the main scene
+     */
     public static Scene getMainScene() {
         return mainScene;
     }

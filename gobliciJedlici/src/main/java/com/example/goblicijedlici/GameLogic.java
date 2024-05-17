@@ -3,15 +3,21 @@ package com.example.goblicijedlici;
 import java.util.*;
 
 
+/**
+ * The type Game logic.
+ */
 public class GameLogic {
 
     private String currentPlayer;
     private final Map<String, Integer[]> availableGoblik = new HashMap<>();
     private final String[] players = {"Red", "Blue"};
-    Random r = new Random();
-    Map<AbstractMap.SimpleEntry<Integer, Integer>, Stack<Goblik>> board;
+    private final Random r = new Random();
+    private final Map<AbstractMap.SimpleEntry<Integer, Integer>, Stack<Goblik>> board;
     private final int size = 3;
 
+    /**
+     * Instantiates a new Game logic.
+     */
     public GameLogic() {
         availableGoblik.put("Blue", new Integer[] {2,2,2});
         availableGoblik.put("Red", new Integer[] {2,2,2});
@@ -24,6 +30,9 @@ public class GameLogic {
         }
     }
 
+    /**
+     * Change cur player.
+     */
     public void changeCurPlayer() {
         if (currentPlayer.equals("Blue")) {
             currentPlayer = "Red";
@@ -32,20 +41,43 @@ public class GameLogic {
         currentPlayer = "Blue";
     }
 
+    /**
+     * Is goblik available boolean.
+     *
+     * @param color the color
+     * @param size  the size
+     * @return the boolean
+     */
     public boolean isGoblikAvailable(String color, int size) {
         return availableGoblik.get(color)[size] != 0;
     }
 
+    /**
+     * Take goblik.
+     *
+     * @param color the color
+     * @param size  the size
+     */
     public void takeGoblik(String color, int size) {
         if (isGoblikAvailable(color, size)) {
             availableGoblik.get(color)[size]--;
         }
     }
 
+    /**
+     * Gets current player.
+     *
+     * @return the current player
+     */
     public String getCurrentPlayer() {
         return currentPlayer;
     }
 
+    /**
+     * Is winner string.
+     *
+     * @return the string
+     */
     public String isWinner() {
         String rows = checkWinnerRow();
         if (rows != null) return rows;
@@ -131,39 +163,68 @@ public class GameLogic {
         return null;
     }
 
+    /**
+     * Gets board.
+     *
+     * @return the board
+     */
     public Map<AbstractMap.SimpleEntry<Integer, Integer>, Stack<Goblik>> getBoard() {
         return board;
     }
 
+    /**
+     * Gets available goblik.
+     *
+     * @return the available goblik
+     */
     public Map<String, Integer[]> getAvailableGoblik() {
         return availableGoblik;
     }
 
+    /**
+     * Place goblik boolean.
+     *
+     * @param row    the row
+     * @param col    the col
+     * @param goblik the goblik
+     * @return the boolean
+     */
     boolean placeGoblik(int row, int col, Goblik goblik) {
 
         String currentPlayer = getCurrentPlayer();
         int size = goblik.getSize();
         if (!isGoblikAvailable(currentPlayer, size)) {
-            System.out.println("Už si minul goblíkov veľkosti " + (size + 1) + "!");
             return false;
         }
 
         Stack<Goblik> stack = board.get(new AbstractMap.SimpleEntry<>(row, col));
         if (stack.isEmpty() || stack.peek().getSize() < goblik.getSize()) {
             stack.push(goblik);
-            System.out.println("Goblik placed at " + row + ", " + col);
             return true;
         }
         else {
-            System.out.println("Cannot place a larger Goblik on a smaller one!");
             return false;
         }
     }
 
+    /**
+     * Gets size.
+     *
+     * @return the size
+     */
     public int getSize() {
         return size;
     }
 
+    /**
+     * Is valid move boolean.
+     *
+     * @param curRow the cur row
+     * @param curCol the cur col
+     * @param newRow the new row
+     * @param newCol the new col
+     * @return the boolean
+     */
     public boolean isValidMove(Integer curRow, Integer curCol, int newRow, int newCol) {
         if (curRow.equals(newRow) && curCol.equals(newCol)) {
             return false;
@@ -181,11 +242,22 @@ public class GameLogic {
         return false;
     }
 
+    /**
+     * Move goblik.
+     *
+     * @param curRow the cur row
+     * @param curCol the cur col
+     * @param newRow the new row
+     * @param newCol the new col
+     */
     public void moveGoblik(Integer curRow, Integer curCol, int newRow, int newCol) {
         Goblik curGoblik = board.get(new AbstractMap.SimpleEntry<>(curRow, curCol)).pop();
         board.get(new AbstractMap.SimpleEntry<>(newRow, newCol)).add(curGoblik);
     }
 
+    /**
+     * Restart game.
+     */
     public void restartGame() {
         availableGoblik.put("Blue", new Integer[] {2, 2, 2});
         availableGoblik.put("Red", new Integer[] {2, 2, 2});
