@@ -7,6 +7,7 @@ import java.util.*;
 import javafx.geometry.Pos;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 import javafx.application.Platform;
 import javafx.stage.Stage;
@@ -118,6 +119,7 @@ public class GameBoard extends VBox {
                 else {
                     selectedGoblikInfo.setText("Neplatný ťah!");
                     selectedGoblikSize = -1;
+                    movingGoblikPosition = null;
                 }
                 return;
             }
@@ -129,6 +131,7 @@ public class GameBoard extends VBox {
                     gameLogic.changeCurPlayer();
                     updateCurrentPlayerLabel();
                     movingGoblikPosition = null;
+                    selectedGoblikSize = -1;
                     selectedGoblikInfo.setText("Žiaden goblík nie je vybraný.");
                     return;
                 }
@@ -150,14 +153,15 @@ public class GameBoard extends VBox {
             gameLogic.changeCurPlayer();
             updateCurrentPlayerLabel();
             selectedGoblikSize = -1;
+            movingGoblikPosition = null;
             selectedGoblikInfo.setText("Žiaden goblík nie je vybraný.");
         }
         else {
             selectedGoblikInfo.setText("Neplatný ťah!");
             selectedGoblikSize = -1;
+            movingGoblikPosition = null;
         }
     }
-
 
     private void updateCurrentPlayerLabel() {
         String currentPlayer = gameLogic.getCurrentPlayer();
@@ -184,10 +188,36 @@ public class GameBoard extends VBox {
         for (int i = 0; i < gobliks.length; i++) {
             for (int j = 0; j < gobliks[i]; j++) {
                 Circle circle = new Circle((i + 1) * 10, color);
+                final int size = i;
+                circle.setOnMouseClicked(e -> {
+                    Paint farba = circle.getFill();
+                    String c = "";
+                    if (farba instanceof Color && ((Color) farba).equals(Color.RED)) {
+                        c = "Red";
+                    }
+                    else {
+                        c = "Blue";
+                    }
+                    if (c.equals(gameLogic.getCurrentPlayer())) {
+                        selectedGoblikSize = size;
+                        selectedGoblikInfo.setText("Vybraný goblík: Veľkosť " + (selectedGoblikSize + 1));
+                        updateSelectedGoblikInfo();
+                    }
+                });
                 panel.getChildren().add(circle);
             }
         }
     }
+
+    private void updateSelectedGoblikInfo() {
+        if (selectedGoblikSize != -1) {
+            selectedGoblikInfo.setText("Vybraný goblík: Veľkosť " + (selectedGoblikSize + 1));
+        }
+        else {
+            selectedGoblikInfo.setText("Žiaden goblík nie je vybraný.");
+        }
+    }
+
 
     private void updateBoard() {
         grid.getChildren().clear();
@@ -229,9 +259,9 @@ public class GameBoard extends VBox {
 
     private double getCircleRadius(int size) {
         switch (size) {
-            case 0: return 20;
-            case 1: return 30;
-            case 2: return 40;
+            case 0: return 10;
+            case 1: return 20;
+            case 2: return 30;
             default: return 10;
         }
     }
@@ -253,7 +283,7 @@ public class GameBoard extends VBox {
             Optional<ButtonType> result = alert.showAndWait();
             if (result.isPresent() && result.get() == buttonTypeNewGame) {
                 restartGame();
-            } 
+            }
             else if (result.isPresent() && result.get() == buttonTypeMainMenu) {
                 goToMainMenu();
             } 
